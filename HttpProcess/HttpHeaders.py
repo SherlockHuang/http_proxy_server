@@ -1,9 +1,7 @@
 __author__ = 'SPHCool'
 import cStringIO
 import re
-
-
-CRLF = '\r\n'
+import HttpDefine
 
 
 def is_request(first_line):
@@ -14,9 +12,6 @@ def is_request(first_line):
 
 
 class HttpHeaders(object):
-    REQUEST = 0
-    RESPONSE = 1
-
     def __init__(self, headers=''):
         self.headers = {}
 
@@ -29,10 +24,10 @@ class HttpHeaders(object):
         # request or response
         if is_request(first_line):
             self.parse_request_line(first_line)
-            self.type = HttpHeaders.REQUEST
+            self.type = HttpDefine.REQUEST
         else:
             self.parse_status_line(first_line)
-            self.type = HttpHeaders.RESPONSE
+            self.type = HttpDefine.RESPONSE
 
         for line in f_headers:
             pair = line.split(':')
@@ -104,16 +99,16 @@ class HttpHeaders(object):
 
     def to_string(self):
         first_line = ''
-        if self.type is HttpHeaders.REQUEST:
+        if self.type is HttpDefine.REQUEST:
             first_line = self.headers['Method'] + ' /' + self.headers['Path'] \
-                + ' ' + self.headers['Http-Version'] + CRLF
+                + ' ' + self.headers['Http-Version'] + HttpDefine.CRLF
         else:
             first_line = self.headers['Http-Version'] + ' ' + self.headers['Status-Code'] \
-                + ' ' + self.headers['Reason-Phrase'] + CRLF
+                + ' ' + self.headers['Reason-Phrase'] + HttpDefine.CRLF
 
         headers_str = first_line
         for header in self.headers:
-            header_line = header + ': ' + self.headers[header] + CRLF
+            header_line = header + ': ' + self.headers[header] + HttpDefine.CRLF
             headers_str += header_line
 
         return headers_str
