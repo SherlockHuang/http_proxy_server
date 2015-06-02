@@ -17,11 +17,12 @@ class HttpHeaders(object):
 
         if headers == '':
             return
-
+        print headers
         f_headers = cStringIO.StringIO(headers)
         first_line = f_headers.readline()
 
         # request or response
+        self.type = ''
         if is_request(first_line):
             self.parse_request_line(first_line)
             self.type = HttpDefine.REQUEST
@@ -99,7 +100,7 @@ class HttpHeaders(object):
 
     def to_string(self):
         first_line = ''
-        if self.type is HttpDefine.REQUEST:
+        if self.type == HttpDefine.REQUEST:
             first_line = self.headers['Method'] + ' /' + self.headers['Path'] \
                 + ' ' + self.headers['Http-Version'] + HttpDefine.CRLF
         else:

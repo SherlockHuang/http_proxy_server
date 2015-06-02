@@ -1,25 +1,15 @@
 __author__ = 'SPHCool'
+import re
 import thread
 import socket
-from HttpProcess.HttpHeaders import HttpHeaders, CRLF
-from HttpProcess.HttpRequest import HttpRequest
-from HttpProcess.HttpResponse import HttpResponse
+from HttpProcess import HttpDefine
+from HttpProcess import HttpPacketUtil
 
 
 def req_proc_func(client_sock, ):
     try:
         client_req_file = client_sock.makefile()
-
-        client_req_headers_str = ''
-        for line in client_req_file:
-            if line == CRLF:
-                break
-            client_req_headers_str += line
-
-        client_req_headers = HttpHeaders(client_req_headers_str)
-
-        client_req_content = client_req_file.read(client_req_headers.get_content_length())
-        client_req = HttpRequest(client_req_headers, client_req_content)
+        client_req = HttpPacketUtil.construct_packet(HttpDefine.REQUEST, client_req_file)
 
         if client_req.is_empty():
             client_sock.close()
@@ -37,8 +27,6 @@ def req_proc_func(client_sock, ):
         else:
             origin_port = '80'
 
-        # origin_ip = socket.gethostbyname(client_req.get_header('Host'))
-        # origin_port = client_req.get_header('Port')
         origin_ip = socket.gethostbyname(origin_hostname)
 
         origin_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,28 +34,30 @@ def req_proc_func(client_sock, ):
         origin_sock.send(client_req.to_string())
 
         origin_resp_file = origin_sock.makefile()
-        origin_resp_data = ''
-        for line in origin_resp_file:
-            if line == CRLF:
-                break
-            origin_resp_data += line
-
-        origin_resp_header = HttpHeaders(origin_resp_data)
-
-        client_sock.send(origin_resp_header.to_string() + CRLF)
-        if origin_resp_header.has_header('Transfer-Encoding')  \
-                and origin_resp_header.get_header('Transfer-Encoding') == 'chunked':
+        origin_resp = HttpPacketUtil.construct_packet(HttpDefine.RESPONSE, origin_resp_file, HttpPacketUtil.CONTENT_BUFFER)
+        client_sock.send(origin_resp.to_string())
+        if origin_resp.has_header('Transfer-Encoding')  \
+                and origin_resp.get_header('Transfer-Encoding') == 'chunked':
             while True:
-                chunked_header = origin_resp_file.readline()
-                chunked_length = int(chunked_header.strip(), 16)
-                chunked_data = origin_resp_file.read(chunked_length + 2)
+                chunk_header = origin_resp_file.readline()
+                client_sock.send(chunk_header)
 
-                client_sock.send(chunked_header + chunked_data)
-                if chunked_length == 0:
+                chunk_header_data = chunk_header.split(';')
+                chunk_size = int(chunk_header_data[0].strip(), 16)
+
+                if chunk_size == 0:
+                    while True:
+                        chunk_data = origin_resp_file.readline()
+                        client_sock.send(chunk_data)
+                        if chunk_data == HttpDefine.CRLF:
+                            break
                     break
+                else:
+                    chunk_data = origin_resp_file.read(chunk_size + 2)
+                    client_sock.send(chunk_data)
         else:
             origin_resp_content = ''
-            content_length = origin_resp_header.get_content_length()
+            content_length = origin_resp.get_content_length()
             while content_length >= 1024:
                 origin_resp_buffer = origin_resp_file.read(1024)
                 origin_resp_content += origin_resp_buffer
@@ -77,8 +67,8 @@ def req_proc_func(client_sock, ):
             origin_resp_buffer = origin_resp_file.read(content_length)
             origin_resp_content += origin_resp_buffer
             client_sock.send(origin_resp_buffer)
-            origin_resp = HttpResponse(origin_resp_header, origin_resp_content)
-            print client_req_headers.to_string(), origin_resp.headers.to_string()
+            origin_resp.body = origin_resp_content
+        print client_req.headers.to_string(), origin_resp.headers.to_string()
 
         origin_resp_file.close()
         origin_sock.close()
