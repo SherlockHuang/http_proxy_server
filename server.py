@@ -1,7 +1,9 @@
 __author__ = 'SPHCool'
 import re
 import thread
+import time
 import socket
+import sys,os
 from HttpProcess import HttpDefine
 from HttpProcess import HttpPacketUtil
 
@@ -45,6 +47,9 @@ def req_proc_func(client_sock, ):
 
         origin_resp_file = origin_sock.makefile()
         origin_resp = HttpPacketUtil.construct_packet(HttpDefine.RESPONSE, origin_resp_file, HttpPacketUtil.CONTENT_BUFFER)
+        origin_resp.host = client_req.get_header('Host')
+        origin_resp.path = client_req.path
+
         client_sock.send(origin_resp.to_string())
         if origin_resp.has_header('Transfer-Encoding')  \
                 and origin_resp.get_header('Transfer-Encoding') == 'chunked':
@@ -84,6 +89,8 @@ def req_proc_func(client_sock, ):
         #     print 'origin_resp first_line: ' + origin_resp.headers.first_line
         # print client_req.headers.to_string(), origin_resp.headers.to_string()
         if origin_resp.is_cacheable():
+            # print time.mktime(time.gmtime())
+            print origin_resp.host,origin_resp.path
             print origin_resp.get_header_string()
 
         origin_resp_file.close()
@@ -140,5 +147,11 @@ if __name__ == '__main__':
     conn_num = 5
 
     host_ip = get_host_ip(test_site, test_port)
+
+    path = sys.path[0]
+    print path
+    HttpPacketUtil.PATH = path
+    print HttpPacketUtil.PATH
+
     main_func(host_ip, host_port, conn_num)
 

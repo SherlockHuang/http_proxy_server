@@ -1,6 +1,7 @@
 __author__ = 'SPHCool'
 from HttpPacket import HttpPacket
 import HttpDefine
+import time
 
 class HttpResponse(HttpPacket):
     def __init__(self, headers=None, body=''):
@@ -9,6 +10,9 @@ class HttpResponse(HttpPacket):
         self.http_version = ''
         self.status_code = ''
         self.reason_phrase = ''
+        self.host = ''
+        self.path = ''
+        self.response_time = time.mktime(time.gmtime())
 
         if headers.first_line != '':
             self.parse_status_line(headers.first_line)
@@ -17,8 +21,8 @@ class HttpResponse(HttpPacket):
 
     def parse_status_line(self, status_line):
         info_data = status_line.split(' ')
-        self.http_version = info_data[0]
-        self.status_code = info_data[1]
+        self.http_version = info_data[0].strip()
+        self.status_code = info_data[1].strip()
         self.reason_phrase = ' '.join(info_data[2:]).strip()
 
     def is_cacheable(self):
@@ -50,6 +54,9 @@ class HttpResponse(HttpPacket):
                 return True
         return False
 
+    def calculate_age(self):
+        pass
+
     def to_string(self):
         return self.get_header_string() + HttpDefine.CRLF + self.body
 
@@ -64,3 +71,6 @@ class HttpResponse(HttpPacket):
             headers_str += header_line
 
         return headers_str
+
+    def set_response_time(self, response_time):
+        self.response_time = response_time

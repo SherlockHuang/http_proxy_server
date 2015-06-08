@@ -3,9 +3,11 @@ import HttpDefine
 from HttpHeaders import HttpHeaders
 from HttpRequest import HttpRequest
 from HttpResponse import HttpResponse
+import time
 
 CONTENT_BUFFER = 0
-
+TIME_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
+PATH = '/'
 
 def construct_packet(packet_type, packet_file, op=None):
     packet_headers_str = ''
@@ -29,6 +31,7 @@ def construct_packet(packet_type, packet_file, op=None):
         packet = HttpRequest(packet_headers, packet_content)
     elif packet_type == HttpDefine.RESPONSE:
         packet = HttpResponse(packet_headers, packet_content)
+        # print packet_headers_str
         # if packet_headers.first_line != '':
         #     print packet_headers.first_line
         # else:
@@ -38,6 +41,12 @@ def construct_packet(packet_type, packet_file, op=None):
 
     return packet
 
+def int_time(time_str):
+    t = time.strptime(time_str, TIME_FORMAT)
+    return time.mktime(t)
+
+def str_time(time_int):
+    return time.strftime(TIME_FORMAT, time_int)
 
 def save_packet(packet, file_path):
     f = open(file_path)
