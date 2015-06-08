@@ -6,9 +6,12 @@ import socket
 import sys,os
 from HttpProcess import HttpDefine
 from HttpProcess import HttpPacketUtil
+from HttpCache.HttpCache import HttpCache
+from HttpCache.HttpCacheEntry import HttpCacheEntry
+from HttpCache import HttpCacheComm
 
 
-def req_proc_func(client_sock, ):
+def req_proc_func(client_sock, cache):
     try:
         client_req_file = client_sock.makefile()
         client_req = HttpPacketUtil.construct_packet(HttpDefine.REQUEST, client_req_file)
@@ -47,8 +50,7 @@ def req_proc_func(client_sock, ):
 
         origin_resp_file = origin_sock.makefile()
         origin_resp = HttpPacketUtil.construct_packet(HttpDefine.RESPONSE, origin_resp_file, HttpPacketUtil.CONTENT_BUFFER)
-        origin_resp.host = client_req.get_header('Host')
-        origin_resp.path = client_req.path
+
 
         client_sock.send(origin_resp.to_string())
         if origin_resp.has_header('Transfer-Encoding')  \
@@ -90,7 +92,15 @@ def req_proc_func(client_sock, ):
         # print client_req.headers.to_string(), origin_resp.headers.to_string()
         if origin_resp.is_cacheable():
             # print time.mktime(time.gmtime())
-            print origin_resp.host,origin_resp.path
+            host = client_req.get_header('Host')
+            path = client_req.path
+            cache_entry = HttpCacheEntry(host, path)
+            cache.add_entry(cache_entry)
+            file_path = HttpCacheComm.ROOT_PATH + os.sep + host + os.sep + HttpPacketUtil.random_str()\
+                        + str(cache_entry.create_time)
+            cache_entry.local_path = file_path
+            HttpPacketUtil.save_packet(origin_resp, file_path)
+            # print origin_resp.host,origin_resp.path
             print origin_resp.get_header_string()
 
         origin_resp_file.close()
@@ -117,25 +127,29 @@ def get_host_ip(site, port):
     return host_ip
 
 
-def wait_socket_func(server_sock):
+def wait_socket_func(server_sock, cache):
     while True:
         req_sock, address = server_sock.accept()
-        thread.start_new(req_proc_func, (req_sock,))
+        thread.start_new(req_proc_func, (req_sock,cache,))
 
 
-def main_func(host_ip, port, conn_num):
+def main_func(host_ip, port, conn_num, cache):
     try:
         server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_sock.bind((host_ip, port))
         print 'bind successfully', host_ip, port
         server_sock.listen(conn_num)
 
-        thread.start_new(wait_socket_func, (server_sock,))
+        thread.start_new(wait_socket_func, (server_sock,cache,))
         while True:
             in_str = raw_input()
             if in_str == 'quit':
                 server_sock.close()
                 break
+            elif in_str == 'show_cache':
+                for k1 in cache.cache_dir:
+                    for k2 in cache.cache_dir[k1]:
+                        print k1,k2
     except KeyboardInterrupt:
         server_sock.close()
 
@@ -150,8 +164,9 @@ if __name__ == '__main__':
 
     path = sys.path[0]
     print path
-    HttpPacketUtil.PATH = path
-    print HttpPacketUtil.PATH
+    HttpCacheComm.ROOT_PATH = path + os.sep + 'cache'
+    print HttpCacheComm.ROOT_PATH
+    cache = HttpCache()
 
-    main_func(host_ip, host_port, conn_num)
+    main_func(host_ip, host_port, conn_num, cache)
 

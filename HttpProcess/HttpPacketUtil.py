@@ -4,6 +4,8 @@ from HttpHeaders import HttpHeaders
 from HttpRequest import HttpRequest
 from HttpResponse import HttpResponse
 import time
+import os
+import random
 
 CONTENT_BUFFER = 0
 TIME_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
@@ -49,9 +51,17 @@ def str_time(time_int):
     return time.strftime(TIME_FORMAT, time_int)
 
 def save_packet(packet, file_path):
-    f = open(file_path)
+    dir_path = os.path.dirname(file_path)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    f = open(file_path, 'w')
     f.write(packet.to_string())
     f.flush()
     f.close()
+
+def random_str():
+    return ''.join(random.sample(['z','y','x','w','v','u','t','s','r','q','p','o','n','m','l','k','j','i','h','g',
+                                'f','e','d','c','b','a'],5))
 
 

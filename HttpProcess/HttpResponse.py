@@ -10,9 +10,6 @@ class HttpResponse(HttpPacket):
         self.http_version = ''
         self.status_code = ''
         self.reason_phrase = ''
-        self.host = ''
-        self.path = ''
-        self.response_time = time.mktime(time.gmtime())
 
         if headers.first_line != '':
             self.parse_status_line(headers.first_line)
@@ -72,5 +69,5 @@ class HttpResponse(HttpPacket):
 
         return headers_str
 
-    def set_response_time(self, response_time):
-        self.response_time = response_time
+    # def set_response_time(self, response_time):
+    #     self.response_time = response_time
