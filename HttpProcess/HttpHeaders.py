@@ -14,20 +14,21 @@ def is_request(first_line):
 class HttpHeaders(object):
     def __init__(self, headers=''):
         self.headers = {}
+        self.first_line = ''
 
         if headers == '':
             return
-        print headers
+        # print headers
         f_headers = cStringIO.StringIO(headers)
-        first_line = f_headers.readline()
+        self.first_line = f_headers.readline()
 
         # request or response
         self.type = ''
-        if is_request(first_line):
-            self.parse_request_line(first_line)
+        if is_request(self.first_line):
+            # self.parse_request_line(self.first_line)
             self.type = HttpDefine.REQUEST
         else:
-            self.parse_status_line(first_line)
+            self.parse_status_line(self.first_line)
             self.type = HttpDefine.RESPONSE
 
         for line in f_headers:
@@ -43,6 +44,7 @@ class HttpHeaders(object):
                 v = ':'.join(pair[1:]).strip()
 
             self.headers[k] = v
+        super(HttpHeaders, self).__init__()
 
     def parse_request_line(self, req_line):
         # match = re.search(r'(\w+) (\w+)://([^/:]+):?([0-9]+)?/(\S*) (HTTP/[0-9.]+)', req_line)
@@ -119,3 +121,6 @@ class HttpHeaders(object):
 
     def get_header(self, header_name):
         return self.headers[header_name]
+
+    # def get_first_line(self):
+    #     return self.first_line

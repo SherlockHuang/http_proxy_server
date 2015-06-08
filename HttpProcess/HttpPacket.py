@@ -6,6 +6,7 @@ class HttpPacket(object):
     def __init__(self, headers=None, body=''):
         self.headers = headers
         self.body = body
+        super(HttpPacket, self).__init__()
 
     def get_content_length(self):
         return self.headers.get_content_length()

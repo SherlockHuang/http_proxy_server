@@ -2,6 +2,14 @@ __author__ = 'SPHCool'
 from HttpPacket import HttpPacket
 
 class HttpResponse(HttpPacket):
+    def __init__(self, headers=None, body=''):
+        super(HttpResponse, self).__init__(headers, body)
+        HttpPacket.__init__(self, headers, body)
+        # if headers.first_line != '':
+        #     print headers.first_line
+        # else:
+        #     print 'first_line is None from HttpResponse'
+
     def response(self):
         return True
 

@@ -15,7 +15,16 @@ def req_proc_func(client_sock, ):
             client_sock.close()
             return
 
-        if client_req.get_header('Protocol').lower() != 'http':
+        # if client_req.headers.first_line == '':
+        #     print 'client_req first_line is None' + '\r\n' + client_req.to_string()
+        # else:
+        #     print 'client_req first_line: ' + client_req.headers.first_line
+
+        # if client_req.get_header('Protocol').lower() != 'http':
+        #     print '[ERROR]: client request protocol is not http'
+        #     client_sock.close()
+        #     return
+        if client_req.protocol.lower() != 'http':
             print '[ERROR]: client request protocol is not http'
             client_sock.close()
             return
@@ -32,6 +41,7 @@ def req_proc_func(client_sock, ):
         origin_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         origin_sock.connect((origin_ip, int(origin_port)))
         origin_sock.send(client_req.to_string())
+        # print 'client_req\r\n' + client_req.to_string()
 
         origin_resp_file = origin_sock.makefile()
         origin_resp = HttpPacketUtil.construct_packet(HttpDefine.RESPONSE, origin_resp_file, HttpPacketUtil.CONTENT_BUFFER)
@@ -68,7 +78,11 @@ def req_proc_func(client_sock, ):
             origin_resp_content += origin_resp_buffer
             client_sock.send(origin_resp_buffer)
             origin_resp.body = origin_resp_content
-        print client_req.headers.to_string(), origin_resp.headers.to_string()
+        # if origin_resp.headers.first_line == '':
+        #     print 'origin_resp first_line is None' + '\r\n' + origin_resp.to_string()
+        # else:
+        #     print 'origin_resp first_line: ' + origin_resp.headers.first_line
+        # print client_req.headers.to_string(), origin_resp.headers.to_string()
 
         origin_resp_file.close()
         origin_sock.close()

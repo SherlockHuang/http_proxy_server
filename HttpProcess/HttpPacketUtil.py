@@ -13,7 +13,7 @@ def construct_packet(packet_type, packet_file, op=None):
         if line == HttpDefine.CRLF:
             break
         packet_headers_str += line
-    print packet_headers_str
+    # print packet_headers_str
     packet_headers = HttpHeaders(packet_headers_str)
 
     packet_content = ''
@@ -22,9 +22,17 @@ def construct_packet(packet_type, packet_file, op=None):
 
     packet = None
     if packet_type == HttpDefine.REQUEST:
+        # if packet_headers.first_line != '':
+        #     print 'first_line is not None :' + packet_headers.first_line
+        # else:
+        #     print 'first_line is None from con req -- ' + packet_headers_str
         packet = HttpRequest(packet_headers, packet_content)
     elif packet_type == HttpDefine.RESPONSE:
         packet = HttpResponse(packet_headers, packet_content)
+        # if packet_headers.first_line != '':
+        #     print packet_headers.first_line
+        # else:
+        #     print 'first_line is None from con resp'
     else:
         print 'Incorrect Type'
 
