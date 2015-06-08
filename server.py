@@ -83,6 +83,8 @@ def req_proc_func(client_sock, ):
         # else:
         #     print 'origin_resp first_line: ' + origin_resp.headers.first_line
         # print client_req.headers.to_string(), origin_resp.headers.to_string()
+        if origin_resp.is_cacheable():
+            print origin_resp.get_header_string()
 
         origin_resp_file.close()
         origin_sock.close()

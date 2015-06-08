@@ -28,7 +28,7 @@ class HttpHeaders(object):
             # self.parse_request_line(self.first_line)
             self.type = HttpDefine.REQUEST
         else:
-            self.parse_status_line(self.first_line)
+            # self.parse_status_line(self.first_line)
             self.type = HttpDefine.RESPONSE
 
         for line in f_headers:
