@@ -11,6 +11,7 @@ class HttpCacheEntry(object):
         self.lock = None
         self.size = 0
 
+        self.receive_age = 0
         self.create_time = time.mktime(time.gmtime())
 
     def set_response(self, response):
@@ -18,3 +19,7 @@ class HttpCacheEntry(object):
 
     def get_response(self):
         return self.response
+
+    def is_stale(self):
+        return False
+
