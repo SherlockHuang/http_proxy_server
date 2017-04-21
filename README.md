@@ -1,3 +1,1 @@
-这是我的毕业设计~~~
-
-一个简单的http代理服务器
+simple http proxy server
